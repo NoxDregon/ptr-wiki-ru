@@ -1,0 +1,13 @@
+{
+  "source": "https://ptr-russian-archive.wholegame32.chatgpt.site",
+  "imported_on": "2026-11-20",
+  "method": "Verified static assets; clean original index.html uploaded separately",
+  "sha256": {
+    "index.html": "ce95ee44f9161e974dfa0222ccd31943e1694eb766b6db73adfd5ba9614a5e55",
+    "app.js": "75ec27b51506fffd303740d58cbc70b98095ce63a8939ed0cb9f7f19b0b718cc",
+    "style.css": "ac436b87ce7082ab6d589d9d4652fe69980880e026b98982d5cbcb76e9b8526e",
+    "icon.svg": "1b2aba61a36299bec1d5015a7485a7cea6523e460d03a3ffd2d788c3ab5ac855",
+    "data.json": "2575e761cf81257a5239416cad8e504b81aa243ef93672163fd048bd2c88b92b",
+    "names-LICENSE.txt": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3"
+  }
+}

@@ -1,0 +1,59 @@
+name: Import verified PTR wiki snapshot
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/import-wiki.yml']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: import-ptr-wiki
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Download and verify exact published files
+        shell: python
+        run: |
+          import hashlib, json, pathlib, urllib.request
+          source = "https://ptr-russian-archive.wholegame32.chatgpt.site/"
+          files = {
+              "index.html": "ce95ee44f9161e974dfa0222ccd31943e1694eb766b6db73adfd5ba9614a5e55",
+              "app.js": "75ec27b51506fffd303740d58cbc70b98095ce63a8939ed0cb9f7f19b0b718cc",
+              "style.css": "ac436b87ce7082ab6d589d9d4652fe69980880e026b98982d5cbcb76e9b8526e",
+              "icon.svg": "1b2aba61a36299bec1d5015a7485a7cea6523e460d03a3ffd2d788c3ab5ac855",
+              "data.json": "2575e761cf81257a5239416cad8e504b81aa243ef93672163fd048bd2c88b92b",
+              "names-LICENSE.txt": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
+          }
+          for name, expected in files.items():
+              request = urllib.request.Request(source + name, headers={"User-Agent": "PTR-Wiki-Migration/1.0"})
+              with urllib.request.urlopen(request, timeout=90) as response:
+                  data = response.read()
+              actual = hashlib.sha256(data).hexdigest()
+              if actual != expected:
+                  raise RuntimeError("Snapshot hash mismatch for " + name)
+              pathlib.Path(name).write_bytes(data)
+              print("Verified", name, len(data), "bytes")
+          data = json.loads(pathlib.Path("data.json").read_text())
+          assert len(data["classes"]) == 70
+          assert len(data["species"]) == 1806
+          assert len(data["packs"]["moves"]) == 1294
+          pathlib.Path(".nojekyll").touch()
+      - name: Commit standalone website
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- index.html app.js style.css icon.svg data.json names-LICENSE.txt .nojekyll
+          if ! git diff --cached --quiet; then
+            git commit -m "Import Russian PTR wiki with Pokedex and class reworks"
+            git push origin HEAD:main
+          fi
